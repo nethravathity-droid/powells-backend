@@ -10,6 +10,13 @@ router.post("/register", async (req, res) => {
   try {
     const { name, email, phone, password } = req.body;
 
+       // ✅ Check all fields
+    if (!name || !email || !phone || !password) {
+      return res.status(400).json({
+        message: "All fields are required",
+      });
+    }
+
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -37,8 +44,9 @@ router.post("/register", async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
-  }
+  console.error("REGISTER ERROR:", error); // 👈 VERY IMPORTANT
+  res.status(500).json({ message: error.message }); // 👈 show real error
+}
 });
 
 
