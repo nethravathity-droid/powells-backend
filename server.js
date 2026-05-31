@@ -10,6 +10,7 @@ app.use(cors({
     "https://www.powellsindiacorporation.com",
     "https://powellsindiacorporation.com"
   ],
+  methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
 app.use(express.json());
