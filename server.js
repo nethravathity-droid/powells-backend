@@ -1,12 +1,17 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const nodemailer = require("nodemailer");
 require("dotenv").config();
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: [
+    "https://www.powellsindiacorporation.com",
+    "https://powellsindiacorporation.com"
+  ],
+  credentials: true
+}));
 app.use(express.json());
 
 // Routes
@@ -18,16 +23,9 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected"))
   .catch((err) => console.log(err));
 
-// Email transporter
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+  console.log("MONGO_URI:", process.env.MONGO_URI);
 
-module.exports = transporter;
+// Email transporter
 
 // Email route
 app.post("/send-request", async (req, res) => {
