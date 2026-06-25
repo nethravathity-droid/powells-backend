@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { sendPowellsEmail, emailLayout } = require("../utils/mailer");
+const { saveSubmission } = require("../utils/saveSubmission");
 
 router.post("/callback", async (req, res) => {
   const { firstName, lastName, email, phone, message } = req.body;
@@ -13,6 +14,14 @@ router.post("/callback", async (req, res) => {
   }
 
   try {
+    await saveSubmission("contact", {
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
+      message: message.trim(),
+    });
+
     await sendPowellsEmail({
       replyTo: email,
       subject: `New Quotation Request: ${firstName} ${lastName}`,

@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { sendPowellsEmail, emailLayout } = require("../utils/mailer");
+const { saveSubmission } = require("../utils/saveSubmission");
 
 router.post("/channel-partner", async (req, res) => {
   const { email, phone, companyName } = req.body;
@@ -30,6 +31,12 @@ router.post("/channel-partner", async (req, res) => {
   }
 
   try {
+    await saveSubmission("channel-partner", {
+      companyName: companyName.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
+    });
+
     await sendPowellsEmail({
       replyTo: email.trim(),
       subject: `Channel Partner Application: ${companyName.trim()}`,

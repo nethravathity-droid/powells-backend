@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { sendPowellsEmail, emailLayout } = require("../utils/mailer");
+const { saveSubmission } = require("../utils/saveSubmission");
 
 router.post("/inquiry", async (req, res) => {
   const { name, email, phone, message } = req.body;
@@ -30,6 +31,13 @@ router.post("/inquiry", async (req, res) => {
   }
 
   try {
+    await saveSubmission("inquiry", {
+      name: name.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
+      message: message.trim(),
+    });
+
     await sendPowellsEmail({
       replyTo: email,
       subject: `Home Page Inquiry: ${name.trim()}`,

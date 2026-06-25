@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const { recordLogin } = require("../utils/loginLog");
 
 
 // ================= REGISTER =================
@@ -18,7 +19,7 @@ router.post("/register", async (req, res) => {
     }
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: email.trim().toLowerCase() });
     if (existingUser) {
       return res.status(400).json({
         message: "User already exists. Please login.",
@@ -32,7 +33,7 @@ router.post("/register", async (req, res) => {
     // Create user
     const newUser = new User({
       name,
-      email,
+      email: email.trim().toLowerCase(),
       phone,
       password: hashedPassword,
     });
@@ -54,10 +55,17 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
+    const normalizedEmail = email?.trim().toLowerCase();
 
     // Check email exists
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: normalizedEmail });
     if (!user) {
+      await recordLogin({
+        email: normalizedEmail,
+        success: false,
+        source: "auth",
+        req,
+      });
       return res.status(404).json({
         message: "Account does not exist. Please register.",
       });
@@ -66,14 +74,29 @@ router.post("/login", async (req, res) => {
     // Compare password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
+      await recordLogin({
+        user,
+        email: normalizedEmail,
+        success: false,
+        source: "auth",
+        req,
+      });
       return res.status(400).json({
         message: "Email or password is incorrect.",
       });
     }
 
+    await recordLogin({
+      user,
+      email: normalizedEmail,
+      success: true,
+      source: "auth",
+      req,
+    });
+
     // Generate token
     const token = jwt.sign(
-      { id: user._id },
+      { id: user._id, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
@@ -86,6 +109,7 @@ router.post("/login", async (req, res) => {
         name: user.name,
         email: user.email,
         phone: user.phone,
+        role: user.role,
       },
     });
 
