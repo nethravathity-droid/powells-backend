@@ -20,6 +20,9 @@ app.use(express.json());
 // Routes
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api", require("./routes/callback"));
+app.use("/api", require("./routes/inquiry"));
+app.use("/api", require("./routes/subscribe"));
+app.use("/api", require("./routes/channelPartner"));
 
 // MongoDB connection
 mongoose.connect(process.env.MONGO_URI)
