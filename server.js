@@ -8,7 +8,9 @@ const app = express();
 app.use(cors({
   origin: [
     "https://www.powellsindiacorporation.com",
-    "https://powellsindiacorporation.com"
+    "https://powellsindiacorporation.com",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173"
   ],
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
@@ -23,37 +25,6 @@ app.use("/api", require("./routes/callback"));
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected"))
   .catch((err) => console.log(err));
-
-  console.log("MONGO_URI:", process.env.MONGO_URI);
-
-// Email transporter
-
-// Email route
-app.post("/send-request", async (req, res) => {
-  const { firstName, lastName, email, phone, message } = req.body;
-
-  try {
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: process.env.EMAIL_USER,
-      subject: "New Quotation Request",
-      html: `
-        <h2>New Request Received</h2>
-        <p><strong>Name:</strong> ${firstName} ${lastName}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Phone:</strong> ${phone}</p>
-        <p><strong>Message:</strong> ${message}</p>
-      `,
-    };
-
-    await transporter.sendMail(mailOptions);
-
-    res.status(200).json({ success: true });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false });
-  }
-});
 
 // Start server (ONLY ONCE)
 app.listen(process.env.PORT, () => {
