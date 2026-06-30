@@ -4,7 +4,7 @@ const orderItemSchema = new mongoose.Schema(
   {
     id: String,
     name: String,
-    price: Number,
+    price: { type: Number, required: false },
     quantity: Number,
     image: String,
   },
@@ -34,8 +34,8 @@ const orderSchema = new mongoose.Schema(
     total: Number,
     paymentMethod: {
       type: String,
-      default: "cod",
-      enum: ["cod"],
+      default: "quotation",
+      enum: ["cod", "quotation"],
     },
     status: {
       type: String,

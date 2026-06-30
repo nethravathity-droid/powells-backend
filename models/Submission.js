@@ -5,7 +5,7 @@ const submissionSchema = new mongoose.Schema(
     type: {
       type: String,
       required: true,
-      enum: ["contact", "inquiry", "subscribe", "channel-partner"],
+      enum: ["contact", "inquiry", "subscribe", "channel-partner", "order"],
     },
     data: {
       type: mongoose.Schema.Types.Mixed,

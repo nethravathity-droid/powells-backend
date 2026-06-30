@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const Submission = require("../models/Submission");
 const LoginLog = require("../models/LoginLog");
+const Order = require("../models/Order");
 const { authMiddleware, adminMiddleware } = require("../middleware/auth");
 const { recordLogin } = require("../utils/loginLog");
 
@@ -86,12 +87,13 @@ router.get("/me", authMiddleware, adminMiddleware, (req, res) => {
 
 router.get("/stats", authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const [contact, inquiry, subscribe, channelPartner, logins, users] =
+    const [contact, inquiry, subscribe, channelPartner, orders, logins, users] =
       await Promise.all([
         Submission.countDocuments({ type: "contact" }),
         Submission.countDocuments({ type: "inquiry" }),
         Submission.countDocuments({ type: "subscribe" }),
         Submission.countDocuments({ type: "channel-partner" }),
+        Order.countDocuments(),
         LoginLog.countDocuments({ success: true }),
         User.countDocuments({ role: "user" }),
       ]);
@@ -103,6 +105,7 @@ router.get("/stats", authMiddleware, adminMiddleware, async (req, res) => {
         inquiry,
         subscribe,
         channelPartner,
+        orders,
         totalSubmissions: contact + inquiry + subscribe + channelPartner,
         logins,
         users,
@@ -160,6 +163,28 @@ router.get("/logins", authMiddleware, adminMiddleware, async (req, res) => {
   } catch (error) {
     console.error("ADMIN LOGINS ERROR:", error);
     res.status(500).json({ success: false, message: "Failed to load login history" });
+  }
+});
+
+router.get("/orders", authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 20));
+    const skip = (page - 1) * limit;
+
+    const [items, total] = await Promise.all([
+      Order.find().sort({ createdAt: -1 }).skip(skip).limit(limit),
+      Order.countDocuments(),
+    ]);
+
+    res.json({
+      success: true,
+      items,
+      pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+    });
+  } catch (error) {
+    console.error("ADMIN ORDERS ERROR:", error);
+    res.status(500).json({ success: false, message: "Failed to load orders" });
   }
 });
 
